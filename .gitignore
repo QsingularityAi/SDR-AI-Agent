@@ -76,7 +76,6 @@ venv.bak/
 # VS Code
 .vscode/
 
-# Images and results
-Images/
+# Test results
 comprehensive_test_results.json
 evaluation_results.json

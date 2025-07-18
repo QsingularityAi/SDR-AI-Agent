@@ -1,6 +1,30 @@
 import asyncio
 import json
+import os
 from src.agent import app
+
+# Initialize LangSmith tracing
+def setup_langsmith():
+    """Setup LangSmith tracing configuration"""
+    # Set environment variables for LangSmith if not already set
+    if not os.getenv("LANGCHAIN_TRACING_V2"):
+        os.environ["LANGCHAIN_TRACING_V2"] = "true"
+    
+    # Use project name from env or default
+    if not os.getenv("LANGCHAIN_PROJECT"):
+        project_name = os.getenv("LANGSMITH_PROJECT", "sdr-ai-agent-optimization")
+        os.environ["LANGCHAIN_PROJECT"] = project_name
+    
+    # Ensure API key is set
+    langsmith_api_key = os.getenv("LANGSMITH_API_KEY")
+    if langsmith_api_key and langsmith_api_key != "your_api_key_here":
+        os.environ["LANGCHAIN_API_KEY"] = langsmith_api_key
+        print(f"🔍 LangSmith tracing enabled for project: {os.getenv('LANGCHAIN_PROJECT')}")
+    else:
+        print("⚠️  LangSmith API key not configured - tracing disabled")
+
+# Initialize LangSmith on import
+setup_langsmith()
 
 async def single_query_mode():
     """Single query mode - processes one query and exits"""
@@ -40,9 +64,13 @@ async def interactive_mode():
 
 async def process_single_query(user_input: str):
     """Process a single query with comprehensive error handling"""
+    from langsmith import traceable
+    from datetime import datetime
+    
     try:
         # Handle both plain text and JSON structured queries
         query = user_input
+        query_type = "plain_text"
         
         # Check if input looks like JSON for structured output
         if user_input.strip().startswith('{') and '"format"' in user_input:
@@ -51,6 +79,7 @@ async def process_single_query(user_input: str):
                 if json_input.get("format") == "json" and "fields" in json_input:
                     # This is a structured JSON request - pass it as-is to the agent
                     query = user_input
+                    query_type = "structured_json"
                     print("📋 Detected structured JSON request")
                 else:
                     query = user_input
@@ -63,8 +92,27 @@ async def process_single_query(user_input: str):
 
         inputs = {"input": query, "chat_history": [], "agent_outcome": None, "intermediate_steps": []}
         
-        # Use ainvoke instead of astream for simpler handling
-        result = await app.ainvoke(inputs)
+        # Create a unique run name for this query
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        query_preview = query[:50] + "..." if len(query) > 50 else query
+        run_name = f"SDR_Query_{timestamp}_{query_preview.replace(' ', '_')}"
+        
+        # Add metadata for better tracking
+        config = {
+            "run_name": run_name,
+            "metadata": {
+                "query_type": query_type,
+                "query_length": len(query),
+                "timestamp": datetime.now().isoformat(),
+                "mode": "single_query"
+            },
+            "tags": ["sdr-agent", query_type]
+        }
+        
+        print(f"🔍 Tracking query in LangSmith as: {run_name}")
+        
+        # Use ainvoke with config for proper tracing
+        result = await app.ainvoke(inputs, config=config)
         final_result = result["agent_outcome"]
         
         print("\n--- SDR AI Agent Response ---")
@@ -100,6 +148,9 @@ async def process_single_query(user_input: str):
                         print(f"📤 Result: {observation}")
                 else:
                     print(f"📤 Result: {str(observation)[:200]}...")
+        
+        # Log completion to LangSmith with additional metadata
+        print(f"✅ Query completed and traced in LangSmith project: {os.getenv('LANGCHAIN_PROJECT')}")
         print("----------------------------")
 
     except Exception as e:

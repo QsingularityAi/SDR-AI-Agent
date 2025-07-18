@@ -527,7 +527,7 @@ class AgentApp:
         
         return response
     
-    async def ainvoke(self, state):
+    async def ainvoke(self, state, config=None):
         """Invoke the agent with the expected state format"""
         # Extract the input from state
         user_input = state.get("input", "")
@@ -654,7 +654,7 @@ START BY USING YOUR SEARCH TOOLS NOW!"""
                     agent = create_react_agent(model, filtered_tools)
                     
                     # Invoke the agent with recursion limit configuration and timeout
-                    config = {
+                    agent_config = {
                         "recursion_limit": 10,  # Increased to allow for multi-step reasoning
                         "max_execution_time": 45.0,  # Limit execution time
                         "configurable": {
@@ -663,9 +663,16 @@ START BY USING YOUR SEARCH TOOLS NOW!"""
                         }
                     }
                     
+                    # Merge with passed config for LangSmith tracing
+                    if config:
+                        agent_config.update(config)
+                        # Ensure configurable is properly merged
+                        if "configurable" in config:
+                            agent_config["configurable"].update(config["configurable"])
+                    
                     # Add timeout to prevent hanging
                     response = await asyncio.wait_for(
-                        agent.ainvoke({"messages": messages}, config=config),
+                        agent.ainvoke({"messages": messages}, config=agent_config),
                         timeout=45.0  # Reduced timeout
                     )
                     

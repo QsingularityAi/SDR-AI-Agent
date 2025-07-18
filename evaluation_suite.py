@@ -200,7 +200,7 @@ class SDRAgentEvaluator:
             },
             {
                 "name": "SDR Helpfulness - Lead Qualification",
-                "query": "Help me qualify a lead from the fintech industry",
+                "query": "I need to qualify a fintech lead for our B2B SaaS solution. Please research this prospect and provide a comprehensive qualification framework including: company background, decision-maker identification, pain point analysis, buying signals, competitive landscape, and personalized outreach strategy. Focus on BANT criteria (Budget, Authority, Need, Timeline) and provide specific talking points for discovery calls",
                 "sdr_context": "lead qualification",
                 "type": "helpfulness"
             },

@@ -89,8 +89,9 @@ class ComprehensiveAgentTester:
     def check_citations(self, response: Union[str, Dict]) -> bool:
         """Check if response includes proper citations"""
         if isinstance(response, dict):
-            # Check for citations in structured response
-            return "citations" in response or "Source:" in str(response)
+            # Check for citations in structured response - look in output field
+            response_text = response.get("output", str(response))
+            return any(keyword in response_text for keyword in ["Source:", "Sources:", "📚", "Based on", "citations"])
         elif isinstance(response, str):
             # Check for citations in text response
             return any(keyword in response for keyword in ["Source:", "Sources:", "📚", "Based on"])

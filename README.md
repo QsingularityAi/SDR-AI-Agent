@@ -9,12 +9,13 @@ An intelligent Sales Development Representative (SDR) assistant powered by LangG
 ## 🎯 Overview
 
 The SDR AI Agent is designed to streamline sales development workflows by providing:
-- **Real-time company intelligence** from multiple data sources
-- **Professional profile research** via LinkedIn integration
+- **Real-time company intelligence** from multiple data sources via BrightData MCP
+- **Professional profile research** and contact enrichment
 - **Market intelligence** and competitive analysis
-- **Structured JSON responses** for CRM integration
-- **Citation-backed insights** for reliable information
-- **Single-turn interactions** for efficient workflows
+- **Structured JSON responses** with strict field validation for CRM integration
+- **Citation-backed insights** for reliable information sourcing
+- **Single-turn interactions** optimized for production workflows
+- **Comprehensive evaluation framework** with accuracy and compliance metrics
 
 ## 🏗️ Architecture Overview
 
@@ -127,18 +128,11 @@ Test your setup:
 # Test basic functionality
 python -c "from src.agent import app; print('✅ Agent loaded successfully')"
 
-# Test MCP connection
-python -c "
-import asyncio
-from src.brightdata_client import BrightDataMCPClient
+# Test MCP connection (requires BrightData MCP server)
+python simple_mcp_test.py
 
-async def test():
-    client = BrightDataMCPClient()
-    await client.connect()
-    print('✅ MCP Connected')
-
-asyncio.run(test())
-"
+# Run a simple query test
+python main.py "Tell me about Google's business model"
 ```
 
 ## 🎮 Usage
@@ -447,19 +441,27 @@ python test/test_agent.py
 # Test MCP integration and demo examples
 python test/demo_examples.py
 
-# Run individual demo functions
-python -c "
-import asyncio
-import sys
-sys.path.append('test')
-from demo_examples import demo_plain_text, demo_structured_json
+# Run SDR-specific workflow examples
+python test/sdr_examples.py
 
-async def run_demos():
-    await demo_plain_text()
-    await demo_structured_json()
+# Test individual components
+python test/test_agent.py
+```
 
-asyncio.run(run_demos())
-"
+### SDR Workflow Examples
+
+The project includes comprehensive SDR-specific examples:
+
+```bash
+# Run all SDR workflow demonstrations
+python test/sdr_examples.py
+
+# Examples include:
+# ✅ Company Summary for Lead Research
+# ✅ Contact Info Enrichment  
+# ✅ LinkedIn Profile Enrichment
+# ✅ Outreach Personalization
+# ✅ Job Posting Lead Qualification
 ```
 
 ### Performance Tests
@@ -477,12 +479,13 @@ LANGSMITH_TRACING=true python main.py "Test query"
 ```
 sdr-ai-agent/
 ├── 📁 src/                           # Source code directory
-│   ├── agent.py                      # Main LangGraph agent implementation
-│   ├── brightdata_client.py          # BrightData MCP client integration
-│   └── enhanced_langsmith_evaluation.py # Advanced LangSmith evaluation
+│   ├── agent.py                      # Main LangGraph agent implementation with MCP integration
+│   └── enhanced_langsmith_evaluation.py # Advanced LangSmith evaluation framework
 ├── 📁 test/                          # Test suite directory
-│   ├── test_agent.py                 # Comprehensive unit tests
-│   └── demo_examples.py              # Working usage examples
+│   ├── test_agent.py                 # Comprehensive unit tests (7 test cases)
+│   ├── demo_examples.py              # Working usage examples and demos
+│   ├── sdr_examples.py               # SDR-specific workflow examples
+│   └── comprehensive_test_results.json # Detailed test execution results
 ├── 📁 Images/                        # Architecture diagrams and visuals
 │   ├── AgentStateSchema.png          # Agent state visualization
 │   ├── Agentflow.png                 # Agent workflow diagram
@@ -492,10 +495,10 @@ sdr-ai-agent/
 │   └── SDRagent.png                  # Agent overview
 ├── main.py                           # CLI interface and entry point
 ├── evaluation_suite.py              # Comprehensive evaluation framework
-├── agentVisulizer.ipynb             # Jupyter notebook for agent visualization
+├── simple_mcp_test.py               # Simple MCP connection testing
 ├── requirements.txt                  # Python dependencies
 ├── .env.example                      # Environment configuration template
-├── .env.production                   # Production environment settings
+├── .env                              # Environment variables (create from .env.example)
 ├── README.md                         # This documentation
 ├── LANGGRAPH_STUDIO_GUIDE.md        # LangGraph Studio setup guide
 ├── comprehensive_test_results.json  # Detailed test results
